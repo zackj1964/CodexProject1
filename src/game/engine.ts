@@ -4,6 +4,9 @@ import { Level } from "./level";
 import { PlayerController } from "./playerController";
 import { Hud } from "../ui/hud";
 
+const BASE_ENEMY_COUNT = 6;
+const MAX_ENEMY_COUNT = 20;
+
 export class GameEngine {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene: THREE.Scene;
@@ -24,7 +27,7 @@ export class GameEngine {
     this.scene.background = new THREE.Color(0x101217);
 
     this.player = new PlayerController(window.innerWidth / window.innerHeight);
-    this.enemySystem = new EnemySystem(this.scene);
+    this.enemySystem = new EnemySystem(this.scene, this.hud.getEnemyBarsLayer());
     this.level = new Level(this.scene, this.floor);
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.45);
@@ -82,6 +85,7 @@ export class GameEngine {
       }
     }
 
+    this.enemySystem.updateHealthBars(this.player.camera, window.innerWidth, window.innerHeight);
     this.renderHud();
     this.renderer.render(this.scene, this.player.camera);
     requestAnimationFrame(this.tick);
@@ -217,9 +221,11 @@ export class GameEngine {
   }
 
   private spawnFloor(): void {
-    const enemies = 6 + Math.floor(Math.random() * 5);
-    this.enemySystem.spawn(this.level, enemies);
-    this.pushLog(`Floor ${this.floor}: ${enemies} enemies detected.`);
+    const randomBonus = Math.floor(Math.random() * 3);
+    const enemyCount = Math.min(MAX_ENEMY_COUNT, BASE_ENEMY_COUNT + this.floor + randomBonus);
+    this.enemySystem.spawn(this.level, enemyCount, this.floor);
+    this.pushLog(`Floor ${this.floor}: ${enemyCount} enemies detected.`);
+    this.pushLog(`Floor ${this.floor}: Enemies are stronger.`);
   }
 
   private restart(): void {

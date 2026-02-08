@@ -4,6 +4,7 @@ export class Hud {
   private enemiesEl: HTMLSpanElement;
   private logListEl: HTMLUListElement;
   private overlayHintEl: HTMLParagraphElement;
+  private enemyBarsLayer: HTMLDivElement;
 
   constructor(root: HTMLElement) {
     root.innerHTML = `
@@ -24,6 +25,7 @@ export class Hud {
           <p>Press R to restart</p>
         </div>
       </div>
+      <div id="enemy-bars" class="enemy-bars"></div>
       <div id="crosshair">+</div>
       <div class="hud">
         <div>HP: <span id="hp">100</span></div>
@@ -41,6 +43,7 @@ export class Hud {
     this.enemiesEl = this.getById<HTMLSpanElement>("enemies");
     this.logListEl = this.getById<HTMLUListElement>("log-list");
     this.overlayHintEl = this.getById<HTMLParagraphElement>("overlay-hint");
+    this.enemyBarsLayer = this.getById<HTMLDivElement>("enemy-bars");
   }
 
   updateStats(hp: number, floor: number, enemiesRemaining: number): void {
@@ -56,6 +59,10 @@ export class Hud {
       item.textContent = entry;
       this.logListEl.appendChild(item);
     });
+  }
+
+  getEnemyBarsLayer(): HTMLDivElement {
+    return this.enemyBarsLayer;
   }
 
   setStartOverlayVisible(visible: boolean): void {

@@ -8,9 +8,13 @@ export type Obstacle = {
 export type Enemy = {
   id: number;
   hp: number;
+  maxHp: number;
   speed: number;
+  damage: number;
   mesh: THREE.Mesh;
   alive: boolean;
+  healthBar: HTMLDivElement;
+  healthFill: HTMLDivElement;
 };
 
 export type InputState = {

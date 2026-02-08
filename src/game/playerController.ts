@@ -16,7 +16,7 @@ export class PlayerController {
     sprint: false,
   };
 
-  private yaw = 0;
+  private yaw = Math.PI;
   private pitch = 0;
 
   constructor(aspect: number) {
@@ -33,8 +33,8 @@ export class PlayerController {
 
   update(delta: number, level: Level): void {
     const speed = this.input.sprint ? 8 : 5;
-    const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw) * -1);
-    const right = new THREE.Vector3(forward.z * -1, 0, forward.x);
+    const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
 
     const move = new THREE.Vector3();
     if (this.input.forward) move.add(forward);
@@ -62,7 +62,7 @@ export class PlayerController {
 
   reset(): void {
     this.position.set(0, 1.7, 0);
-    this.yaw = 0;
+    this.yaw = Math.PI;
     this.pitch = 0;
     this.camera.position.copy(this.position);
     this.camera.rotation.set(0, 0, 0);

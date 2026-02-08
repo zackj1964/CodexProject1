@@ -7,11 +7,11 @@ A first-person roguelite shooter built with **Vite + TypeScript + Three.js**.
 - Click-to-play start overlay with Pointer Lock
 - FPS controls (WASD + mouse look)
 - Hitscan shooting from screen center
-- Enemies chase and damage player at close range
+- Enemies chase and damage player at close range, with scaling difficulty each floor
 - Clear all enemies to spawn a floor portal
 - Touch portal to generate the next floor
 - HP persists between floors with a small heal on floor clear
-- HUD with HP, floor, enemies remaining, and a short event log
+- HUD with HP, floor, enemies remaining, a short event log, and enemy health bars above targets
 - Game over overlay with `R` restart
 
 ## Controls
