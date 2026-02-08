@@ -3,6 +3,7 @@ import { InputState } from "./types";
 import { Level } from "./level";
 
 const SENSITIVITY = 0.0023;
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
 
 export class PlayerController {
   readonly camera: THREE.PerspectiveCamera;
@@ -16,7 +17,7 @@ export class PlayerController {
     sprint: false,
   };
 
-  private yaw = Math.PI;
+  private yaw = 0;
   private pitch = 0;
 
   constructor(aspect: number) {
@@ -33,8 +34,17 @@ export class PlayerController {
 
   update(delta: number, level: Level): void {
     const speed = this.input.sprint ? 8 : 5;
-    const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
-    const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+
+    this.camera.rotation.order = "YXZ";
+    this.camera.rotation.y = this.yaw;
+    this.camera.rotation.x = this.pitch;
+
+    const forward = this.camera.getWorldDirection(new THREE.Vector3());
+    forward.y = 0;
+    if (forward.lengthSq() > 0) {
+      forward.normalize();
+    }
+    const right = new THREE.Vector3().crossVectors(forward, WORLD_UP).normalize();
 
     const move = new THREE.Vector3();
     if (this.input.forward) move.add(forward);
@@ -55,14 +65,11 @@ export class PlayerController {
     }
 
     this.camera.position.copy(this.position);
-    this.camera.rotation.order = "YXZ";
-    this.camera.rotation.y = this.yaw;
-    this.camera.rotation.x = this.pitch;
   }
 
   reset(): void {
     this.position.set(0, 1.7, 0);
-    this.yaw = Math.PI;
+    this.yaw = 0;
     this.pitch = 0;
     this.camera.position.copy(this.position);
     this.camera.rotation.set(0, 0, 0);
