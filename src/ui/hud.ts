@@ -3,14 +3,19 @@ export class Hud {
   private floorEl: HTMLSpanElement;
   private enemiesEl: HTMLSpanElement;
   private logListEl: HTMLUListElement;
+  private overlayHintEl: HTMLParagraphElement;
 
   constructor(root: HTMLElement) {
     root.innerHTML = `
       <div id="overlay" class="overlay visible">
+        <button id="overlay-backdrop" class="overlay-backdrop" aria-label="Start game">
+          <span class="sr-only">Start game</span>
+        </button>
         <div class="overlay-card">
           <h1>3D Roguelite Shooter</h1>
           <p>Click to Play</p>
           <small>WASD move • Mouse look • Shift sprint • Left click shoot • R restart</small>
+          <p id="overlay-hint" class="overlay-hint">Click to capture mouse</p>
         </div>
       </div>
       <div id="game-over" class="overlay hidden">
@@ -35,6 +40,7 @@ export class Hud {
     this.floorEl = this.getById<HTMLSpanElement>("floor");
     this.enemiesEl = this.getById<HTMLSpanElement>("enemies");
     this.logListEl = this.getById<HTMLUListElement>("log-list");
+    this.overlayHintEl = this.getById<HTMLParagraphElement>("overlay-hint");
   }
 
   updateStats(hp: number, floor: number, enemiesRemaining: number): void {
@@ -54,6 +60,20 @@ export class Hud {
 
   setStartOverlayVisible(visible: boolean): void {
     this.toggleOverlay("overlay", visible);
+    if (visible) {
+      this.setOverlayHint("Click to capture mouse");
+    }
+  }
+
+  setOverlayHint(message: string): void {
+    this.overlayHintEl.textContent = message;
+  }
+
+  getOverlayClickTargets(): HTMLElement[] {
+    return [
+      this.getById<HTMLElement>("overlay"),
+      this.getById<HTMLElement>("overlay-backdrop"),
+    ];
   }
 
   setGameOverVisible(visible: boolean): void {

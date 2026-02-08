@@ -35,6 +35,7 @@ export class GameEngine {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.domElement.tabIndex = 0;
     this.canvasHost.appendChild(this.renderer.domElement);
 
     this.bindEvents();
@@ -55,7 +56,7 @@ export class GameEngine {
     if (!this.running) return;
     const delta = Math.min(0.03, this.clock.getDelta());
 
-    if (!this.gameOver && document.pointerLockElement === this.renderer.domElement) {
+    if (!this.gameOver && this.hasPointerLock()) {
       this.player.update(delta, this.level);
       const incomingDps = this.enemySystem.update(delta, this.player.position, this.level);
       if (incomingDps > 0) {
@@ -93,8 +94,27 @@ export class GameEngine {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    document.addEventListener("pointerlockchange", () => {
+      if (this.hasPointerLock()) {
+        this.hud.setStartOverlayVisible(false);
+        this.hud.setOverlayHint("Mouse captured");
+        return;
+      }
+
+      this.clearMovementInput();
+      if (!this.gameOver) {
+        this.hud.setStartOverlayVisible(true);
+        this.hud.setOverlayHint("Click to capture mouse");
+      }
+    });
+
+    document.addEventListener("pointerlockerror", () => {
+      this.hud.setStartOverlayVisible(true);
+      this.hud.setOverlayHint("Pointer lock blocked. Click to capture mouse.");
+    });
+
     document.addEventListener("mousemove", (event) => {
-      if (document.pointerLockElement === this.renderer.domElement && !this.gameOver) {
+      if (this.hasPointerLock() && !this.gameOver) {
         this.player.onMouseMove(event);
       }
     });
@@ -104,29 +124,62 @@ export class GameEngine {
         this.restart();
         return;
       }
+      if (!this.hasPointerLock() || this.gameOver) {
+        return;
+      }
       this.setMovement(event.code, true);
     });
 
     document.addEventListener("keyup", (event) => {
+      if (!this.hasPointerLock() || this.gameOver) {
+        return;
+      }
       this.setMovement(event.code, false);
     });
 
-    this.renderer.domElement.addEventListener("click", () => {
-      if (!this.gameOver) {
-        this.renderer.domElement.requestPointerLock();
+    const handlePlayAttempt = () => {
+      if (this.gameOver) {
+        return;
       }
-      this.hud.setStartOverlayVisible(false);
-    });
+      this.renderer.domElement.focus();
+      document.body.focus();
+      this.hud.setOverlayHint("Capturing mouse...");
+      this.requestPointerLock();
+    };
+
+    for (const target of this.hud.getOverlayClickTargets()) {
+      target.addEventListener("click", handlePlayAttempt);
+    }
 
     document.addEventListener("mousedown", (event) => {
-      if (
-        event.button === 0 &&
-        document.pointerLockElement === this.renderer.domElement &&
-        !this.gameOver
-      ) {
+      if (event.button === 0 && this.hasPointerLock() && !this.gameOver) {
         this.shoot();
       }
     });
+  }
+
+  private requestPointerLock(): void {
+    const target = this.renderer.domElement;
+    if (target.requestPointerLock) {
+      target.requestPointerLock();
+      return;
+    }
+    document.body.requestPointerLock?.();
+  }
+
+  private hasPointerLock(): boolean {
+    return (
+      document.pointerLockElement === this.renderer.domElement ||
+      document.pointerLockElement === document.body
+    );
+  }
+
+  private clearMovementInput(): void {
+    this.player.input.forward = false;
+    this.player.input.backward = false;
+    this.player.input.left = false;
+    this.player.input.right = false;
+    this.player.input.sprint = false;
   }
 
   private setMovement(code: string, pressed: boolean): void {
